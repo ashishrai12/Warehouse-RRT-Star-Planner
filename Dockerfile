@@ -26,4 +26,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Set the entry point to run the RRT* simulation (this can be overridden)
-CMD ["python", "rrt_planner.py"]
+CMD ["python", "main.py"]

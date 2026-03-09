@@ -1,14 +1,18 @@
 import unittest
 import numpy as np
-from rrt_planner import RRTStar, Node
+from src.models import Node, Obstacle, WarehouseConfig
+from src.algorithms.rrt_star import RRTStar
 
 class TestRRTStar(unittest.TestCase):
     def setUp(self):
-        self.bounds = (0, 10, 0, 10)
-        self.start = (1, 1)
-        self.goal = (9, 9)
-        self.obstacles = [] # No obstacles for simple testing
-        self.rrt = RRTStar(self.start, self.goal, self.obstacles, self.bounds, max_iter=100)
+        self.config = WarehouseConfig(
+            bounds=(0, 10, 0, 10),
+            start=(1, 1),
+            goal=(9, 9),
+            obstacles=[], # No obstacles for simple testing
+            max_iter=100
+        )
+        self.rrt = RRTStar(self.config)
 
     def test_node_init(self):
         node = Node(2.0, 3.0)
@@ -25,7 +29,7 @@ class TestRRTStar(unittest.TestCase):
     def test_steer(self):
         n1 = Node(0, 0)
         n2 = Node(10, 0)
-        self.rrt.step_size = 2.0
+        self.config.step_size = 2.0
         n_new = self.rrt._steer(n1, n2)
         self.assertEqual(n_new.x, 2.0)
         self.assertEqual(n_new.y, 0.0)
@@ -43,7 +47,7 @@ class TestRRTStar(unittest.TestCase):
         self.assertTrue(self.rrt._is_collision_free(n1, n2))
 
         # With an obstacle in between
-        self.rrt.obstacles = [(2.5, 2.5, 1.0)]
+        self.config.obstacles = [Obstacle(2.5, 2.5, 1.0)]
         self.assertFalse(self.rrt._is_collision_free(n1, n2))
 
         # Outside obstacle
@@ -52,13 +56,13 @@ class TestRRTStar(unittest.TestCase):
 
     def test_planning_success(self):
         # A simple straight line should work easily
-        self.rrt.max_iter = 500
-        path = self.rrt.plan(animate=False)
+        self.config.max_iter = 500
+        path = self.rrt.plan()
         self.assertTrue(len(path) >= 2)
-        self.assertEqual(path[0], self.start)
+        self.assertEqual(path[0], self.config.start)
         # Check if the last point is close to the goal (within step_size)
-        dist_to_goal = np.sqrt((path[-1][0] - self.goal[0])**2 + (path[-1][1] - self.goal[1])**2)
-        self.assertLess(dist_to_goal, self.rrt.step_size + 0.1)
+        dist_to_goal = np.sqrt((path[-1][0] - self.config.goal[0])**2 + (path[-1][1] - self.config.goal[1])**2)
+        self.assertLess(dist_to_goal, self.config.step_size + 0.1)
 
 if __name__ == "__main__":
     unittest.main()

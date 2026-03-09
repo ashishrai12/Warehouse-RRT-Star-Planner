@@ -23,6 +23,16 @@ graph TD
     L --> M[Goal: Delivery Bay]
 ```
 
+## Project Structure
+
+The project has been refactored for modularity and high performance:
+
+*   `src/models/`: Data structures for `Node`, `Obstacle`, and `WarehouseConfig`.
+*   `src/algorithms/`: Core implementation of the `RRTStar` planner.
+*   `src/utils/`: Visualization and helper utilities.
+*   `src/math_foundations.jl`: High-performance Julia implementation of mathematical foundations (collision checking, distance metrics).
+*   `main.py`: Main entry point for the Python-based simulation.
+
 ## Overview
 
 Unlike grid-based algorithms like A*, RRT* navigates through continuous spaces by building a tree of reachable states. It dynamically optimizes the tree structure, ensuring that the found path converges to the optimal solution as more samples are added.
@@ -31,16 +41,19 @@ Unlike grid-based algorithms like A*, RRT* navigates through continuous spaces b
 
 *   **Optimal Pathfinding:** Converges to the shortest path using RRT* rewiring logic.
 *   **Warehouse Simulation:** Pre-configured with shelving units, processing equipment, and pillars.
+*   **Multi-Language Foundations:** Includes a Julia engine for computational geometry performance.
 *   **Dockerized Environment:** Easily run the simulation and tests in a containerized environment.
-*   **Dynamic Visualization:** Real-time animation of tree expansion (saves to PNG in headless mode).
-*   **Unit Tested:** Comprehensive test suite for algorithm components.
+*   **Dynamic Visualization:** Real-time animation of tree expansion.
 
-## Requirements
+## Mathematical Foundation
 
-*   Python 3.9+
-*   `numpy`
-*   `matplotlib`
-*   `pytest` (for testing)
+The RRT* algorithm optimizes the path by minimizing a cost function $C(n)$ for each node $n$ in the tree. The core operations implemented in both Python and Julia include:
+
+- **Euclidean Metric**: $d(q_i, q_j) = \sqrt{\sum (x_i - x_j)^2}$
+- **Steer Function**: $q_{new} = q_{near} + \frac{q_{rand} - q_{near}}{||q_{rand} - q_{near}||} \cdot \Delta q$
+- **Rewiring Condition**: If $C(q_{new}) + d(q_{new}, q_{near}) < C(q_{near})$, update $parent(q_{near}) = q_{new}$.
+
+The Julia implementation in `src/math_foundations.jl` provides a high-performance reference for these operations.
 
 ## Installation & Usage
 
@@ -53,7 +66,7 @@ Unlike grid-based algorithms like A*, RRT* navigates through continuous spaces b
     ```
 3.  Run the simulation:
     ```bash
-    python rrt_planner.py
+    python main.py
     ```
 
 ### Docker Execution
@@ -68,26 +81,14 @@ You can run the planner without installing any local dependencies:
     ```bash
     docker run --name rrt-sim rrt-warehouse
     ```
-3.  To copy the generated plot to your host:
-    ```bash
-    docker cp rrt-sim:/app/warehouse_path_plan.png .
-    ```
 
 ## Testing
 
 Run the unit tests:
 ```bash
-pytest tests/
+$env:PYTHONPATH="."; pytest tests/
 ```
 
 ## Simulation Output
 
 ![Warehouse Path Plan](warehouse_path_plan.png)
-
-## Simulation Details
-
-*   **Gray Circles:** Warehouse obstacles (shelves, equipment).
-*   **Cyan Tree:** The rapidly exploring search tree.
-*   **Red Path:** The optimized robot routing path.
-*   **Green Circle:** Delivery Bay (Goal).
-*   **Red Circle:** Sorting Station (Start).
