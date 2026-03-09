@@ -80,6 +80,10 @@ Run the unit tests:
 pytest tests/
 ```
 
+## Simulation Output
+
+![Warehouse Path Plan](warehouse_path_plan.png)
+
 ## Simulation Details
 
 *   **Gray Circles:** Warehouse obstacles (shelves, equipment).
