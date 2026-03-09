@@ -1,49 +1,89 @@
 
-<img width="919" height="844" alt="{64024C97-DAFD-4E4E-959C-D2FF7E9639F5}" src="https://github.com/user-attachments/assets/17995ccf-0279-4614-895a-862fa6271d0f" />
+# Automated Warehouse: RRT* Motion Planning
 
-# Automated Warehouse Sorting and Routing System
+This repository implements the **RRT*** (Rapidly-exploring Random Tree Star) motion planning algorithm, specifically tailored for an **Automated Warehouse Sorting and Routing System**.
 
-This project simulates an automated warehouse robot system that sorts and routes items based on priority. It visualizes robots navigating a grid-based warehouse, picking up items, and delivering them to designated locations while avoiding obstacles and handling random failures.
+## System Architecture
 
-## Features
+```mermaid
+graph TD
+    A[Start: Sorting Station] --> B{RRT* Planner}
+    B --> C[Sample Random Node]
+    C --> D[Find Nearest Node]
+    D --> E[Steer towards Sample]
+    E --> F{Collision Check}
+    F -- No --> C
+    F -- Yes --> G[Add Node to Tree]
+    G --> H[Find Near Neighbors]
+    H --> I[Choose Best Parent]
+    I --> J[Rewire Neighbors]
+    J --> K{Goal Reached?}
+    K -- No --> C
+    K -- Yes --> L[Trace Optimal Path]
+    L --> M[Goal: Delivery Bay]
+```
 
-*   **Robot Simulation:** Robots with battery levels, movement states (Idle, Moving, Picking, Dropping), and random failure simulation.
-*   **Warehouse Layout:** A 2D grid layout with aisles, storage shelves, and loading zones.
-*   **Task Scheduling:** Assigns tasks to robots based on item priority (Urgent vs. Regular).
-*   **Path Optimization:** Uses the A* algorithm for shortest path finding.
-*   **Real-Time Visualization:** Uses `matplotlib` to animate the simulation, showing robots, items, paths, and status updates.
-*   **Edge Cases:** Simulates robot breakdowns and self-repair attempts.
+## Overview
+
+Unlike grid-based algorithms like A*, RRT* navigates through continuous spaces by building a tree of reachable states. It dynamically optimizes the tree structure, ensuring that the found path converges to the optimal solution as more samples are added.
+
+### Key Features
+
+*   **Optimal Pathfinding:** Converges to the shortest path using RRT* rewiring logic.
+*   **Warehouse Simulation:** Pre-configured with shelving units, processing equipment, and pillars.
+*   **Dockerized Environment:** Easily run the simulation and tests in a containerized environment.
+*   **Dynamic Visualization:** Real-time animation of tree expansion (saves to PNG in headless mode).
+*   **Unit Tested:** Comprehensive test suite for algorithm components.
 
 ## Requirements
 
-*   Python 3.x
+*   Python 3.9+
 *   `numpy`
 *   `matplotlib`
+*   `pytest` (for testing)
 
-## Installation
+## Installation & Usage
 
-1.  Clone the repository or download the source code.
-2.  Install the required dependencies:
+### Local Execution
 
+1.  Clone the repository.
+2.  Install dependencies:
     ```bash
-    pip install numpy matplotlib
+    pip install -r requirements.txt
+    ```
+3.  Run the simulation:
+    ```bash
+    python rrt_planner.py
     ```
 
-## Usage
+### Docker Execution
 
-Run the simulation script:
+You can run the planner without installing any local dependencies:
 
+1.  Build the Docker image:
+    ```bash
+    docker build -t rrt-warehouse .
+    ```
+2.  Run the simulation (saves `warehouse_path_plan.png` inside the container):
+    ```bash
+    docker run --name rrt-sim rrt-warehouse
+    ```
+3.  To copy the generated plot to your host:
+    ```bash
+    docker cp rrt-sim:/app/warehouse_path_plan.png .
+    ```
+
+## Testing
+
+Run the unit tests:
 ```bash
-python robot_simulation.py
+pytest tests/
 ```
 
 ## Simulation Details
 
-*   **Blue Circles:** Active Robots.
-*   **Red Circles:** Broken Robots.
-*   **Orange Squares:** Urgent Items.
-*   **Green Squares:** Regular Items.
-*   **Yellow Lines:** Planned paths for robots.
-*   **Black Blocks:** Shelves/Obstacles.
-
-The simulation runs for a set number of frames. You can adjust parameters like `GRID_SIZE`, `NUM_ROBOTS`, and `NUM_ITEMS` in the `robot_simulation.py` file.
+*   **Gray Circles:** Warehouse obstacles (shelves, equipment).
+*   **Cyan Tree:** The rapidly exploring search tree.
+*   **Red Path:** The optimized robot routing path.
+*   **Green Circle:** Delivery Bay (Goal).
+*   **Red Circle:** Sorting Station (Start).
